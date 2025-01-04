@@ -28,10 +28,10 @@ def create_access_token(data: dict):
 def verify_access_token(token: str, credentials_exception):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        id: str = str(payload.get("user_id"))
-        if id is None:
+        email: str = str(payload.get("user_email"))
+        if email is None:
             raise credentials_exception
-        token_data = schemas.TokenData(id=id)
+        token_data = schemas.TokenData(email=email)
     except InvalidTokenError:
         raise credentials_exception
 
@@ -48,6 +48,6 @@ def get_current_user(
 
     token_schema = verify_access_token(token, credentials_exception)
 
-    user = db.query(models.User).filter(models.User.id == token_schema.id).first()
+    user = db.query(models.User).filter(models.User.email == token_schema.email).first()
 
     return user
