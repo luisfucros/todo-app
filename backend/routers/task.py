@@ -13,11 +13,13 @@ router = APIRouter(
 )
 
 @router.get("", response_model=List[schemas.TaskOut])
-def get_all_tasks(
+def get_tasks(
     db: Session = Depends(get_db),
-    current_user: schemas.UserOut = Depends(oauth2.get_current_user)
+    current_user: schemas.UserOut = Depends(oauth2.get_current_user),
+    limit: int = 10,
+    skip: int = 0,
 ):
-    tasks = db.query(models.Task).all()
+    tasks = db.query(models.Task).limit(limit).offset(skip).all()
     return tasks
 
 @router.post("", response_model=schemas.TaskOut)
@@ -56,3 +58,27 @@ def update_task(
     db.commit()
 
     return task_query.first()
+
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_task(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user: schemas.UserOut = Depends(oauth2.get_current_user)
+):
+
+    task_query = db.query(models.Task).filter(models.Task.id == id)
+
+    task = task_query.first()
+
+    if task is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"task with id: {id} does not exist")
+
+    if task.owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Not authorized to perform requested action")
+
+    task_query.delete(synchronize_session=False)
+    db.commit()
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
