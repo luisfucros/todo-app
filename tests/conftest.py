@@ -42,35 +42,37 @@ def client(session):
     yield TestClient(app)
 
 
-@pytest.fixture
-def test_user2(client):
-    user_data = {
-        "name": "luis",
-        "email": "luis123@gmail.com",
-        "password": "password123"
-    }
-    res = client.post("/users/register", json=user_data)
-
-    assert res.status_code == 201
-
-    new_user = res.json()
-    new_user['password'] = user_data['password']
-    return new_user
+def create_test_user(client, user_data):
+    response = client.post("/users/register", json=user_data)
+    assert response.status_code == 201
+    return response.json()
 
 
 @pytest.fixture
 def test_user(client):
     user_data = {
+        "id": 1,
         "name": "luis",
         "email": "luis@gmail.com",
         "password": "password123"
     }
-    res = client.post("/users/register", json=user_data)
 
-    assert res.status_code == 201
+    new_user = create_test_user(client, user_data)
+    new_user.update({"id": user_data["id"], "email": user_data["email"], "password": user_data["password"]})
+    return new_user
 
-    new_user = res.json()
-    new_user['password'] = user_data['password']
+
+@pytest.fixture
+def test_user2(client):
+    user_data = {
+        "id": 2,
+        "name": "luis",
+        "email": "luis123@gmail.com",
+        "password": "password123"
+    }
+
+    new_user = create_test_user(client, user_data)
+    new_user.update({"id": user_data["id"], "email": user_data["email"], "password": user_data["password"]})
     return new_user
 
 
@@ -85,8 +87,15 @@ def authorized_client(client, token):
         **client.headers,
         "Authorization": f"Bearer {token}"
     }
-
     return client
+
+
+def create_tasks(session, user_id, tasks_data):
+    tasks = [models.Task(**task_data) for task_data in tasks_data]
+    session.add_all(tasks)
+    session.commit()
+    return session.query(models.Task).filter(models.Task.owner_id == user_id).all()
+
 
 @pytest.fixture
 def test_tasks(test_user, session, test_user2):
@@ -104,19 +113,18 @@ def test_tasks(test_user, session, test_user2):
         "description": "third description",
         "owner_id": test_user['id']
     }, {
+        "title": "fourth task",
+        "description": "first description",
+        "owner_id": test_user['id']
+    }]
+    return create_tasks(session, test_user['id'], tasks_data)
+
+
+@pytest.fixture
+def test_tasks2(test_user2, session):
+    tasks_data = [{
         "title": "first task",
         "description": "first description",
         "owner_id": test_user2['id']
     }]
-
-    def create_task_model(task):
-        return models.Task(**task)
-
-    task_map = map(create_task_model, tasks_data)
-    tasks = list(task_map)
-
-    session.add_all(tasks)
-    session.commit()
-
-    tasks = session.query(models.Task).all()
-    return tasks
+    return create_tasks(session, test_user2['id'], tasks_data)
