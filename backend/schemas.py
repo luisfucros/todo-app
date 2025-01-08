@@ -34,7 +34,7 @@ class TaskOut(BaseModel):
     description: str
     created_at: datetime
 
-    class Config:
+    class ConfigDict:
         from_attributes = True
 
 
