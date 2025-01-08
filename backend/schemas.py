@@ -33,7 +33,6 @@ class TaskOut(BaseModel):
     title: str
     description: str
     created_at: datetime
-    owner_id: int
 
     class Config:
         from_attributes = True
