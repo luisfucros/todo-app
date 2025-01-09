@@ -13,6 +13,7 @@ services:
     command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
     depends_on:
       - db
+      - redis
 
   db:
     image: postgres:15.10
@@ -41,6 +42,16 @@ services:
     ports:
       - "9090:8080"
 
+  redis:
+    image: redis:7.4.2
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
 volumes:
   postgres-db:
+    driver: local
+  redis-data:
     driver: local
