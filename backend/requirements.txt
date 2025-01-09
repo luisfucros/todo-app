@@ -13,3 +13,5 @@ psycopg2-binary==2.9.10
 SQLAlchemy==2.0.36
 pytest==8.3.4
 httpx==0.28.1
+fastapi-limiter==0.1.6
+redis==5.3.0b3
