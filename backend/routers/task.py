@@ -1,6 +1,6 @@
 from fastapi import Query, Response, status, HTTPException, Depends, APIRouter
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import List
 
 from sqlalchemy import func
 from backend import models, schemas, oauth2
