@@ -41,7 +41,7 @@ class TaskOut(BaseModel):
 class TaskResponse(BaseModel):
     data: List[TaskOut]
     limit: int
-    skip: int
+    page: int
     total: int
 
 
