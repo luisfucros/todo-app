@@ -3,7 +3,7 @@ from backend import schemas
 
 
 def test_get_all_tasks(authorized_client, test_tasks):
-    res = authorized_client.get("/todos?limit=5")
+    res = authorized_client.get("/todos?limit=5&page=1")
     res_dict = res.json()
 
     def validate(task):
@@ -14,6 +14,7 @@ def test_get_all_tasks(authorized_client, test_tasks):
     assert len(tasks_list) == len(test_tasks)
     assert res_dict.get('total') == len(tasks_list)
     assert res_dict.get('limit') == 5
+    assert res_dict.get('page') == 1
     assert res.status_code == 200
 
 
