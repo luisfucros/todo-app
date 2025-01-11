@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import List, Optional
 from datetime import datetime
 
 
@@ -34,8 +34,15 @@ class TaskOut(BaseModel):
     description: str
     created_at: datetime
 
-    class ConfigDict:
+    class Config:
         from_attributes = True
+
+
+class TaskResponse(BaseModel):
+    data: List[TaskOut]
+    limit: int
+    skip: int
+    total: int
 
 
 class Token(BaseModel):

@@ -1,6 +1,6 @@
 from fastapi import Query, Response, status, HTTPException, Depends, APIRouter
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy import func
 from backend import models, schemas, oauth2
@@ -12,15 +12,27 @@ router = APIRouter(
     tags=['Tasks']
 )
 
-@router.get("", response_model=List[schemas.TaskOut])
+@router.get("", response_model=schemas.TaskResponse)
 def get_tasks(
     db: Session = Depends(get_db),
     current_user: schemas.UserOut = Depends(oauth2.get_current_user),
     limit: int = Query(10, le=100),
     skip: int = Query(0, ge=0),
+    search: Optional[str] = ""
 ):
-    tasks = db.query(models.Task).filter(models.Task.owner_id == current_user.id).limit(limit).offset(skip).all()
-    return tasks
+    tasks = db.query(models.Task).filter(
+        models.Task.owner_id == current_user.id
+    ).filter(models.Task.title.contains(search))\
+        .order_by(models.Task.created_at.desc()).limit(limit).offset(skip).all()
+    
+    total = len(tasks)
+    response = schemas.TaskResponse(
+        data=tasks,
+        limit=limit,
+        skip=skip,
+        total=total
+    )
+    return response
 
 @router.post("", status_code=status.HTTP_201_CREATED, response_model=schemas.TaskOut)
 def create_task(
