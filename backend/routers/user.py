@@ -28,7 +28,6 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     access_token = oauth2.create_access_token(data={"user_email": user.email})
 
     return {"access_token": access_token, "token_type": "bearer"}
-    # return new_user
 
 @router.get('/{id}', response_model=schemas.UserOut)
 def get_user(id: int, db: Session = Depends(get_db), ):
